@@ -368,7 +368,15 @@ sub inlinify {
       # override styles with !important styles
       %new_style = (%new_style, %new_important_style);
 
-      $element->attr('style', $self->_expand({ declarations => \%new_style }));
+      # Phony CSS properties beginning with 'html-' are applied as HTML attributes...
+      foreach my $prop (keys %new_style)
+      {
+        my ($attr) = $prop =~ m/^html-(.*)/
+          or next;
+        $element->attr($attr, delete $new_style{$prop});
+      }
+
+      $element->attr('style', $self->_expand({ declarations => \%new_style })) if %new_style;
     }
 
     #at this point we have a document that contains the expanded inlined stylesheet
